@@ -1,0 +1,3 @@
+[submodule "sources/protocoles_suivi"]
+	path = sources/protocoles_suivi
+	url = git@github.com:LPOAgirPourLaBiodiversite/protocoles_suivi.git
