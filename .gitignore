@@ -2,6 +2,7 @@
 docker-compose.override.yml
 /config/
 /data/
+/logs/
 !data/**/.gitkeep
 !data/**/*.sample
 *.swp

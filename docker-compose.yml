@@ -24,8 +24,8 @@ x-geonature-backend-env: &geonature-backend-env
 
 x-geonature-backend-defaults: &geonature-backend-defaults
   <<: *defaults
-  image: ${GEONATURE_BACKEND_EXTRA_IMAGE}
-    # build: ./
+    # image: ${GEONATURE_BACKEND_EXTRA_IMAGE}
+  build: ./
   depends_on:
     <<: *geonature-depends-on-defaults
   volumes:
@@ -33,6 +33,7 @@ x-geonature-backend-defaults: &geonature-backend-defaults
     - ./data/geonature/media:${GEONATURE_MEDIA_FOLDER:-/dist/media}
     - ./data/geonature/custom:${GEONATURE_CUSTOM_STATIC_FOLDER:-/dist/custom}
     - ./sources:/sources
+    - ./logs:/dist/logs
   environment:
     <<: *geonature-backend-env
 
@@ -153,15 +154,18 @@ services:
       - "gunicorn"
       - "geonature:create_app()"
       - "--name=geonature"
-      - "--workers=2"
-      - "--threads=2"
-      - "--access-logfile=-"
+      - "--workers=${GEONATURE_BACKEND_WORKERS:-2}"
+      - "--threads=${GEONATURE_BACKEND_THREADS:-2}"
+      - "--timeout=${GEONATURE_BACKEND_TIMEOUT:-30}"
+      - "--access-logfile=${GEONATURE_BACKEND_ACCESS_LOGFILE:-/dist/logs/backend-access.log}"
+      - "--error-logfile=${GEONATURE_BACKEND_ERROR_LOGFILE:-/dist/logs/backend-error.log}"
       - "--bind=0.0.0.0:8000"
       - "--reload"
       - "--reload-extra-file=${GEONATURE_CONFIG_FILE:-/dist/config/geonature_config.toml}"
     environment:
       <<: *geonature-backend-env
       VIRTUAL_HOST: ${GEONATURE_BACKEND_HOST}
+      VIRTUAL_MAX_UPLOAD: 100m
       LETSENCRYPT_HOST: ${GEONATURE_BACKEND_HOST}
       VIRTUAL_PATH: ${GEONATURE_BACKEND_PREFIX}
     networks:

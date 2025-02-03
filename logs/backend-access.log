@@ -1,5 +1,0 @@
-193.222.189.215 - - [03/Feb/2025:13:18:33 +0000] "GET /api/gn_commons/config HTTP/1.1" 200 21017 "https://geonature.lpo-aura.org/" "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
-193.222.189.215 - - [03/Feb/2025:13:18:34 +0000] "GET /api/gn_commons/modules HTTP/1.1" 200 41499 "https://geonature.lpo-aura.org/" "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
-193.222.189.215 - - [03/Feb/2025:13:18:34 +0000] "GET /api/notifications/count HTTP/1.1" 200 2 "https://geonature.lpo-aura.org/" "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
-193.222.189.215 - - [03/Feb/2025:13:18:34 +0000] "POST /api/synthese/for_web?limit=100&format=ungrouped_geom HTTP/1.1" 200 40289 "https://geonature.lpo-aura.org/" "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
-193.222.189.215 - - [03/Feb/2025:13:18:36 +0000] "GET /api/geo/areas?type_code=DEP&format=geojson&enable=true HTTP/1.1" 200 4970249 "https://geonature.lpo-aura.org/" "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"
