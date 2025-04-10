@@ -17,14 +17,13 @@ x-geonature-backend-env: &geonature-backend-env
   GEONATURE_SQLALCHEMY_DATABASE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
   GEONATURE_URL_APPLICATION: ${GEONATURE_FRONTEND_PROTOCOL}://${GEONATURE_FRONTEND_HOSTPORT}${GEONATURE_FRONTEND_PREFIX}
   GEONATURE_API_ENDPOINT: ${GEONATURE_BACKEND_PROTOCOL}://${GEONATURE_BACKEND_HOSTPORT}${GEONATURE_BACKEND_PREFIX}
-  GEONATURE_API_TAXHUB: ${TAXHUB_PROTOCOL}://${TAXHUB_HOSTPORT}${TAXHUB_API_PREFIX}
   GEONATURE_CONFIG_FILE: ${GEONATURE_CONFIG_FILE:-/dist/config/geonature_config.toml}
   GEONATURE_CELERY__broker_url: ${GEONATURE_CELERY__broker_url:-redis://redis}
   GEONATURE_CELERY__result_backend: ${GEONATURE_CELERY__result_backend:-redis://redis}
 
 x-geonature-backend-defaults: &geonature-backend-defaults
   <<: *defaults
-    # image: ${GEONATURE_BACKEND_EXTRA_IMAGE}
+    #image: ${GEONATURE_BACKEND_EXTRA_IMAGE}
   build: ./
   depends_on:
     <<: *geonature-depends-on-defaults
@@ -32,8 +31,9 @@ x-geonature-backend-defaults: &geonature-backend-defaults
     - ./config/geonature:/dist/config
     - ./data/geonature/media:${GEONATURE_MEDIA_FOLDER:-/dist/media}
     - ./data/geonature/custom:${GEONATURE_CUSTOM_STATIC_FOLDER:-/dist/custom}
-    - ./sources:/sources
+    - ../gn_commons/sources:/sources
     - ./logs:/dist/logs
+    - ./config/geonature/pyodk_cache.toml:/.pyodk_cache.toml
   environment:
     <<: *geonature-backend-env
 
@@ -51,7 +51,6 @@ services:
       retries: 5
     networks:
       _net_geonature:
-
 
   usershub:
     <<: [*restart-policy, *defaults]
@@ -78,36 +77,6 @@ services:
       proxy:
       _net_geonature:
 
-
-
-  taxhub:
-    <<: [*restart-policy, *defaults]
-    image: ${TAXHUB_IMAGE}
-    container_name: ${STACK_NAME:-geonature}_taxhub
-    depends_on:
-      geonature-install-db:
-        condition: service_completed_successfully
-    volumes:
-      - ./config/taxhub:/dist/config
-      - ./data/taxhub/medias:${TAXHUB_STATIC_FOLDER:-/dist/static}/medias
-    environment:
-      <<: *env-defaults
-      TAXHUB_APPLICATION_ROOT: "${TAXHUB_PREFIX}"
-      TAXHUB_SQLALCHEMY_DATABASE_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
-      TAXHUB_SETTINGS: ${TAXHUB_SETTINGS:-/dist/config/config.py}
-      TAXHUB_UPLOAD_FOLDER: "medias"
-      TAXHUB_SQLALCHEMY_TRACK_MODIFICATIONS: False
-      TAXHUB_COOKIE_EXPIRATION: 3600
-      TAXHUB_PASS_METHOD: "hash"
-      VIRTUAL_HOST: ${TAXHUB_HOST}
-      LETSENCRYPT_HOST: ${TAXHUB_HOST}
-      VIRTUAL_PATH: ${TAXHUB_PREFIX}
-    networks:
-      proxy:
-      _net_geonature:
-
-
-
   geonature-install-db:
     <<: *geonature-backend-defaults
       #command: "geonature permissions supergrant --yes ${GEONATURE_SUPERGRANT_ARGS:---help}"
@@ -123,8 +92,6 @@ services:
       install_ref_sensitivity: ${GEONATURE_DB_INSTALL_REF_SENSITIVITY:-true}
       usershub: ${GEONATURE_DB_INSTALL_USERSHUB:-true}
       usershub_samples: ${GEONATURE_DB_INSTALL_USERSHUB_SAMPLES:-true}
-      taxhub: ${GEONATURE_DB_INSTALL_TAXHUB:-true}
-      taxhub_samples: ${GEONATURE_DB_INSTALL_TAXHUB_SAMPLES:-true}
     networks:
       _net_geonature:
 
@@ -137,7 +104,7 @@ services:
       geonature-install-db:
         condition: service_completed_successfully
     entrypoint: []
-    command: celery -A geonature.celery_app:app worker --beat --schedule-filename=/dist/media/celerybeat-schedule.db
+    command: celery -A geonature.celery_app:app worker --beat --schedule-filename=/dist/media/celerybeat-schedule.db --logfile /dist/logs/worker.log
     networks:
       _net_geonature:
 
@@ -158,7 +125,8 @@ services:
       - "--threads=${GEONATURE_BACKEND_THREADS:-2}"
       - "--timeout=${GEONATURE_BACKEND_TIMEOUT:-30}"
       - "--access-logfile=${GEONATURE_BACKEND_ACCESS_LOGFILE:-/dist/logs/backend-access.log}"
-      - "--error-logfile=${GEONATURE_BACKEND_ERROR_LOGFILE:-/dist/logs/backend-error.log}"
+      - "--error-logfile=${GEONATURE_BACKEND_ERROR_LOGFILE:-/dist/logs/backend.log}"
+      - "--capture-output"
       - "--bind=0.0.0.0:8000"
       - "--reload"
       - "--reload-extra-file=${GEONATURE_CONFIG_FILE:-/dist/config/geonature_config.toml}"
@@ -197,3 +165,4 @@ networks:
     name: proxy
     external: true
   _net_geonature:
+    name: _net_${STACK_NAME:-geonature}
